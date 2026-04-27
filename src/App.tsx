@@ -46,11 +46,17 @@ export default function App() {
 
   // Initialize Exam
   const startExam = () => {
-    // 1. Get the mandatory 25 questions (Part 1: ids starting with M)
-    const mandatoryQuestions = QUESTIONS.filter(q => typeof q.id === 'string' && q.id.startsWith('M'));
+    // 1. Get the mandatory 25 questions (Part 1: ids 1-25 or starting with M)
+    const mandatoryQuestions = QUESTIONS.filter(q => 
+      (typeof q.id === 'string' && q.id.startsWith('M')) || 
+      (typeof q.id === 'number' && q.id <= 25)
+    );
     
-    // 2. Get the rest of the questions (Part 2)
-    const remainingPool = QUESTIONS.filter(q => !(typeof q.id === 'string' && q.id.startsWith('M')));
+    // 2. Get the rest of the questions (Part 2 and beyond)
+    const remainingPool = QUESTIONS.filter(q => 
+      !((typeof q.id === 'string' && q.id.startsWith('M')) || 
+      (typeof q.id === 'number' && q.id <= 25))
+    );
     
     // 3. Shuffle the pool and take 25 random questions
     const randomQuestions = shuffle(remainingPool).slice(0, 25);
@@ -101,90 +107,42 @@ export default function App() {
   };
 
   const sections = useMemo(() => {
-    const moeParts = [
-      // Part 1: Management
-      { id: '1.1', name: '1.1 Corporate commitment' },
-      { id: '1.2', name: '1.2 Safety policy & objectives' },
-      { id: '1.3', name: '1.3 Management personnel' },
-      { id: '1.4', name: '1.4 Duties & responsibilities' },
-      { id: '1.5', name: '1.5 Organization Chart' },
-      { id: '1.6', name: '1.6 List of Certifying Staff' },
-      { id: '1.7', name: '1.7 Manpower Resources' },
-      { id: '1.8', name: '1.8 Facilities' },
-      { id: '1.9', name: '1.9 Scope of Work' },
-      { id: '1.10', name: '1.10 Notification Procedure' },
-      { id: '1.11', name: '1.11 MOE Amendment' },
-      // Part 2: Procedures
-      { id: '2.1', name: '2.1 Supplier Eval & Subcontract' },
-      { id: '2.2', name: '2.2 Acceptance of Components' },
-      { id: '2.3', name: '2.3 Storage and Tagging' },
-      { id: '2.4', name: '2.4 Acceptance of Tools' },
-      { id: '2.5', name: '2.5 Calibration of Tools' },
-      { id: '2.6', name: '2.6 Use of Tooling' },
-      { id: '2.7', name: '2.7 Maintenance Cleanliness' },
-      { id: '2.8', name: '2.8 Maintenance Instructions' },
-      { id: '2.9', name: '2.9 Repair Procedure' },
-      { id: '2.10', name: '2.10 A/C Maint. Programme' },
-      { id: '2.11', name: '2.11 Airworthiness Directives' },
-      { id: '2.12', name: '2.12 Optional Analysis' },
-      { id: '2.13', name: '2.13 Maintenance Documentation' },
-      { id: '2.14', name: '2.14 Technical Record Control' },
-      { id: '2.15', name: '2.15 Rectification of Defects' },
-      { id: '2.16', name: '2.16 Release to Service' },
-      { id: '2.17', name: '2.17 Records for the Operator' },
-      { id: '2.18', name: '2.18 Occurrence Reporting' },
-      { id: '2.19', name: '2.19 Return of components' },
-      { id: '2.20', name: '2.20 Components to contractors' },
-      { id: '2.21', name: '2.21 Check/Task Card Issuance' },
-      { id: '2.22', name: '2.22 Man-hour plan' },
-      { id: '2.23', name: '2.23 Independent Inspection' },
-      { id: '2.24', name: '2.24 Specific Maint. Procedures' },
-      { id: '2.25', name: '2.25 Multiple Errors / Omissions' },
-      { id: '2.26', name: '2.26 Shift / Task Handover' },
-      { id: '2.27', name: '2.27 Data Ambiguities' },
-      { id: '2.28', name: '2.28 Production Planning' },
-      { id: '2.30', name: '2.30 Part Fabrication' },
-      { id: '2.31', name: '2.31 Component Maintenance' },
-      { id: '2.32', name: '2.32 Maint. Away from Base' },
-      { id: '2.33', name: '2.33 Assessment of Scope' },
-      // Part L2
-      { id: 'L2', name: 'Part L2 Additional Line Maintenance Procedures' },
-      // Part 3: Quality
-      { id: '3.1', name: '3.1 Quality Audit of Org' },
-      { id: '3.2', name: '3.2 Quality Audit of A/C' },
-      { id: '3.4', name: '3.4 Product Audit' },
-      { id: '3.8', name: '3.8 Compliance Monitoring' },
-      { id: '3.9', name: '3.9 Staff Qualification' },
-      { id: '3.12', name: '3.12 Compliance Personnel' },
-      { id: '3.13', name: '3.13 Independent Insp. Staff' },
-      { id: '3.14', name: '3.14 Mechanics Qualification' },
-      { id: '3.15', name: '3.15 Exemption Process' },
-      { id: '3.16', name: '3.16 Concession Control' },
-      { id: '3.17', name: '3.17 Specialized Activities' },
-      { id: '3.18', name: '3.18 Working Teams' },
-      { id: '3.19', name: '3.19 Competency Assessment' },
-      { id: '3.22', name: '3.22 Management Record Keeping' },
-      // Part 4 & 5
-      { id: '4.1', name: '4.1 Contracted Customers' },
-      { id: '4.2', name: '4.2 Customer Paperwork' },
-      { id: '5.3', name: '5.3 Line Maint. Locations' },
-      { id: '5.4', name: '5.4 Contracted Part-145' },
-      { id: '5.5', name: '5.5 Component Similarity' },
-      { id: '12.2.1', name: '12.2.1 PMA Procedures' },
-      { id: '12.2.3', name: '12.2.3 Material Issuance' },
-      { id: '12.2.6', name: '12.2.6 Tool Fabrication' },
-      { id: '12.2.8', name: '12.2.8 JIC Issuance' },
-      { id: '12.3.9', name: '12.3.9 Training & Similarity' },
-    ];
+    // Get all unique sections from all questions
+    const uniqueSections = Array.from(new Set(QUESTIONS.map(q => q.section)))
+      .filter(Boolean)
+      .sort((a, b) => {
+        const getPriority = (s: string) => {
+          if (s.startsWith('1.')) return 1;
+          if (s.startsWith('2.')) return 2;
+          if (s.startsWith('L2')) return 2.5;
+          if (s.startsWith('3.')) return 3;
+          if (s.startsWith('4.')) return 4;
+          if (s.startsWith('5.')) return 5;
+          if (s.startsWith('12.')) return 12;
+          return 99;
+        };
+        const pA = getPriority(a);
+        const pB = getPriority(b);
+        if (pA !== pB) return pA - pB;
+        return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
+      });
 
-    const result = moeParts.map(part => ({
-      ...part,
-      filter: (q: Question) => (q.section === part.id || q.text.includes(`MOE ${part.id}`) || (q.section === undefined && q.text.includes(part.id))) && !(typeof q.id === 'string' && q.id.startsWith('M'))
+    const result = uniqueSections.map(sectionName => ({
+      id: sectionName,
+      name: sectionName,
+      filter: (q: Question) => q.section === sectionName
     }));
 
     // Add mandatory at the top
     return [
-      { id: 'MANDATORY', name: 'Mandatory Questions (M01-M25)', filter: (q: Question) => typeof q.id === 'string' && q.id.startsWith('M') },
+      { 
+        id: 'MANDATORY', 
+        name: 'MOE Necessarily Known', 
+        filter: (q: Question) => 
+          (typeof q.id === 'string' && q.id.startsWith('M')) || 
+          (typeof q.id === 'number' && q.id <= 25) ||
+          q.section === 'MOE Necessarily Known' 
+      },
       ...result
     ];
   }, []);
@@ -538,7 +496,7 @@ export default function App() {
                   </div>
 
                   <div className="space-y-2">
-                    {currentQuestion.options.map((opt) => (
+                    {currentQuestion.options.map((opt, index) => (
                       <button
                         key={opt.key}
                         onClick={() => handleAnswer(currentQuestion.id, opt.key)}
@@ -552,7 +510,7 @@ export default function App() {
                           <div className={`w-6 h-6 rounded flex items-center justify-center font-bold text-[10px] ${
                             answers[currentQuestion.id] === opt.key ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-600 group-hover:bg-slate-300'
                           }`}>
-                            {opt.key.toUpperCase()}
+                            {String.fromCharCode(65 + index)}
                           </div>
                           <span className="text-xs md:text-sm font-medium leading-tight">{opt.text}</span>
                         </div>
