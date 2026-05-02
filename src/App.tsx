@@ -44,7 +44,25 @@ export default function App() {
   const [examQuestions, setExamQuestions] = useState<Question[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string | number, string>>({});
-  const [timeLeft, setTimeLeft] = useState(50 * 60); // 50 minutes in seconds
+  const [timeLeft, setTimeLeft] = useState(50 * 60);
+
+  const [hasProgress, setHasProgress] = useState(localStorage.getItem('full_review_active') === 'true');
+
+  // Persistence logic for Full Review
+  useEffect(() => {
+    if (mode === 'training' && screen === 'exam') {
+      localStorage.setItem('full_review_index', currentIndex.toString());
+      localStorage.setItem('full_review_answers', JSON.stringify(answers));
+      localStorage.setItem('full_review_active', 'true');
+    }
+  }, [currentIndex, answers, mode, screen]);
+
+  const resetProgress = () => {
+    localStorage.removeItem('full_review_index');
+    localStorage.removeItem('full_review_answers');
+    localStorage.removeItem('full_review_active');
+    setHasProgress(false);
+  };
 
   // Initialize Exam
   const startExam = () => {
@@ -88,7 +106,7 @@ export default function App() {
   };
 
   // Start Training
-  const startTraining = (selectedQuestions: Question[]) => {
+  const startTraining = (selectedQuestions: Question[], resume = false) => {
     let finalSet = [...selectedQuestions];
 
     // Optional: Shuffle options for each question
@@ -103,11 +121,21 @@ export default function App() {
       });
     }
 
+    let startAt = 0;
+    let savedAnswers = {};
+
+    if (resume) {
+      const savedIdx = localStorage.getItem('full_review_index');
+      const savedAns = localStorage.getItem('full_review_answers');
+      if (savedIdx) startAt = parseInt(savedIdx);
+      if (savedAns) savedAnswers = JSON.parse(savedAns);
+    }
+
     setExamQuestions(finalSet);
-    setCurrentIndex(0);
-    setAnswers({});
+    setCurrentIndex(startAt);
+    setAnswers(savedAnswers);
     setMode('training');
-    setTimeLeft(finalSet.length * 60); // 1 minute per question
+    setTimeLeft(finalSet.length * 60); 
     setScreen('exam');
     setIsFeedbackVisible(false);
   };
@@ -261,14 +289,38 @@ export default function App() {
             </div>
  
             <div className="flex flex-col justify-center gap-3">
-              <button 
-                onClick={() => startTraining(QUESTIONS)}
-                className="bg-slate-900 hover:bg-slate-800 text-white font-bold py-4 px-8 rounded-xl text-lg shadow-xl transition-all flex items-center justify-center gap-3 active:scale-95"
-              >
-                <Grid3X3 className="w-6 h-6 text-white" />
-                Full Review ({QUESTIONS.length} Questions)
-                <Play className="w-5 h-5 fill-white" />
-              </button>
+              {hasProgress && parseInt(localStorage.getItem('full_review_index') || '0') > 0 ? (
+                <div className="flex flex-col gap-2">
+                  <button 
+                    onClick={() => {
+                      setHasProgress(true);
+                      startTraining(QUESTIONS, true);
+                    }}
+                    className="bg-slate-900 hover:bg-slate-800 text-white font-bold py-4 px-8 rounded-xl text-lg shadow-xl transition-all flex items-center justify-center gap-3 active:scale-95"
+                  >
+                    <Play className="w-6 h-6 fill-white" />
+                    Resume Full Review (Q. {parseInt(localStorage.getItem('full_review_index') || '0') + 1})
+                  </button>
+                  <button 
+                    onClick={resetProgress}
+                    className="text-slate-400 hover:text-red-500 font-bold py-1 text-xs transition-all flex items-center justify-center gap-1"
+                  >
+                    <RotateCcw className="w-3 h-3" /> Reset Progress
+                  </button>
+                </div>
+              ) : (
+                <button 
+                  onClick={() => {
+                    setHasProgress(true);
+                    startTraining(QUESTIONS);
+                  }}
+                  className="bg-slate-900 hover:bg-slate-800 text-white font-bold py-4 px-8 rounded-xl text-lg shadow-xl transition-all flex items-center justify-center gap-3 active:scale-95"
+                >
+                  <Grid3X3 className="w-6 h-6 text-white" />
+                  Full Review 298 Questions
+                  <Play className="w-5 h-5 fill-white" />
+                </button>
+              )}
               
               <div className="flex flex-col sm:flex-row gap-3">
                 <button 
