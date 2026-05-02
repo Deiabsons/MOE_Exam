@@ -35,9 +35,11 @@ const shuffle = (array: any[]) => {
 
 export default function App() {
   const [screen, setScreen] = useState<'home' | 'exam' | 'results' | 'training'>('home');
+  const [mode, setMode] = useState<'exam' | 'training'>('exam');
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [trainingSearch, setTrainingSearch] = useState('');
   const [shuffleOptions, setShuffleOptions] = useState(true);
+  const [isFeedbackVisible, setIsFeedbackVisible] = useState(false);
 
   const [examQuestions, setExamQuestions] = useState<Question[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -79,8 +81,10 @@ export default function App() {
     setExamQuestions(finalSet);
     setCurrentIndex(0);
     setAnswers({});
+    setMode('exam');
     setTimeLeft(finalSet.length * 60); // 1 minute per question
     setScreen('exam');
+    setIsFeedbackVisible(false);
   };
 
   // Start Training
@@ -102,8 +106,10 @@ export default function App() {
     setExamQuestions(finalSet);
     setCurrentIndex(0);
     setAnswers({});
+    setMode('training');
     setTimeLeft(finalSet.length * 60); // 1 minute per question
     setScreen('exam');
+    setIsFeedbackVisible(false);
   };
 
   const sections = useMemo(() => {
@@ -149,15 +155,15 @@ export default function App() {
   // Timer Effect
   useEffect(() => {
     let interval: any;
-    if (screen === 'exam' && timeLeft > 0) {
+    if (screen === 'exam' && mode === 'exam' && timeLeft > 0) {
       interval = setInterval(() => {
         setTimeLeft((prev) => prev - 1);
       }, 1000);
-    } else if (timeLeft === 0 && screen === 'exam') {
+    } else if (mode === 'exam' && timeLeft === 0 && screen === 'exam') {
       setScreen('results');
     }
     return () => clearInterval(interval);
-  }, [screen, timeLeft]);
+  }, [screen, mode, timeLeft]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -166,7 +172,21 @@ export default function App() {
   };
 
   const handleAnswer = (questionId: string | number, answer: string) => {
+    if (mode === 'training' && isFeedbackVisible) return;
     setAnswers(prev => ({ ...prev, [questionId]: answer }));
+    if (mode === 'training') {
+      setIsFeedbackVisible(true);
+    }
+  };
+
+  const nextQuestion = () => {
+    setCurrentIndex(prev => Math.min(examQuestions.length - 1, prev + 1));
+    setIsFeedbackVisible(false);
+  };
+
+  const prevQuestion = () => {
+    setCurrentIndex(prev => Math.max(0, prev - 1));
+    setIsFeedbackVisible(false);
   };
 
   const currentQuestion = examQuestions[currentIndex];
@@ -385,7 +405,7 @@ export default function App() {
                       cx="24" cy="24" r="21" fill="transparent" stroke="#f1f5f9" strokeWidth="3" 
                     />
                     <circle 
-                      cx="24" cy="24" r="21" fill="transparent" stroke="#2563eb" strokeWidth="3" 
+                      cx="24" cy="24" r="21" fill="transparent" stroke={mode === 'training' ? '#1e293b' : '#2563eb'} strokeWidth="3" 
                       strokeDasharray={132} strokeDashoffset={132 - (132 * progress) / 100}
                       className="transition-all duration-500"
                     />
@@ -395,17 +415,19 @@ export default function App() {
                   </span>
                 </div>
                 <div className="hidden sm:block">
-                  <h2 className="font-bold text-slate-400 text-[10px] uppercase tracking-wider">Progress</h2>
+                  <h2 className="font-bold text-slate-400 text-[10px] uppercase tracking-wider">{mode === 'training' ? 'Full Review' : 'Progress'}</h2>
                   <p className="font-bold text-sm">{Math.round(progress)}% Complete</p>
                 </div>
               </div>
 
-              <div className="bg-slate-900 text-white px-4 py-2 rounded-xl flex items-center gap-2 shadow-lg scale-90 sm:scale-100">
-                <Timer className="w-4 h-4 text-blue-400" />
-                <span className="font-mono text-xl font-bold tracking-tighter">
-                  {formatTime(timeLeft)}
-                </span>
-              </div>
+              {mode === 'exam' && (
+                <div className="bg-slate-900 text-white px-4 py-2 rounded-xl flex items-center gap-2 shadow-lg scale-90 sm:scale-100">
+                  <Timer className="w-4 h-4 text-blue-400" />
+                  <span className="font-mono text-xl font-bold tracking-tighter">
+                    {formatTime(timeLeft)}
+                  </span>
+                </div>
+              )}
 
               <button 
                 onClick={() => setShowExitConfirm(true)}
@@ -490,29 +512,51 @@ export default function App() {
                   </div>
 
                   <div className="space-y-2">
-                    {currentQuestion.options.map((opt, index) => (
-                      <button
-                        key={opt.key}
-                        onClick={() => handleAnswer(currentQuestion.id, opt.key)}
-                        className={`w-full text-left p-2.5 rounded-lg border transition-all flex items-center justify-between group active:scale-[0.99] ${
-                          answers[currentQuestion.id] === opt.key 
-                            ? 'bg-blue-50 border-blue-600 ring-1 ring-blue-600' 
-                            : 'bg-slate-50 border-transparent hover:border-slate-200'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2">
-                          <div className={`w-6 h-6 rounded flex items-center justify-center font-bold text-[10px] ${
-                            answers[currentQuestion.id] === opt.key ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-600 group-hover:bg-slate-300'
-                          }`}>
-                            {String.fromCharCode(65 + index)}
+                    {currentQuestion.options.map((opt, index) => {
+                      const isSelected = answers[currentQuestion.id] === opt.key;
+                      const isCorrect = opt.key === currentQuestion.correctAnswer;
+                      const showSuccess = mode === 'training' && isFeedbackVisible && isCorrect;
+                      const showError = mode === 'training' && isFeedbackVisible && isSelected && !isCorrect;
+
+                      return (
+                        <button
+                          key={opt.key}
+                          disabled={mode === 'training' && isFeedbackVisible}
+                          onClick={() => handleAnswer(currentQuestion.id, opt.key)}
+                          className={`w-full text-left p-2.5 rounded-lg border transition-all flex items-center justify-between group active:scale-[0.99] ${
+                            showSuccess
+                              ? 'bg-emerald-50 border-emerald-500 ring-1 ring-emerald-500'
+                              : showError
+                              ? 'bg-red-50 border-red-500 ring-1 ring-red-500'
+                              : isSelected
+                              ? 'bg-blue-50 border-blue-600 ring-1 ring-blue-600'
+                              : 'bg-slate-50 border-transparent hover:border-slate-200'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <div className={`w-6 h-6 rounded flex items-center justify-center font-bold text-[10px] ${
+                              showSuccess 
+                                ? 'bg-emerald-600 text-white' 
+                                : showError 
+                                ? 'bg-red-600 text-white' 
+                                : isSelected 
+                                ? 'bg-blue-600 text-white' 
+                                : 'bg-slate-200 text-slate-600 group-hover:bg-slate-300'
+                            }`}>
+                              {String.fromCharCode(65 + index)}
+                            </div>
+                            <span className={`text-xs md:text-sm font-medium leading-tight ${showSuccess ? 'text-emerald-900' : showError ? 'text-red-900' : ''}`}>
+                              {opt.text}
+                            </span>
                           </div>
-                          <span className="text-xs md:text-sm font-medium leading-tight">{opt.text}</span>
-                        </div>
-                        {answers[currentQuestion.id] === opt.key && (
-                          <CheckCircle2 className="w-3.5 h-3.5 text-blue-600" />
-                        )}
-                      </button>
-                    ))}
+                          {showSuccess && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />}
+                          {showError && <XCircle className="w-3.5 h-3.5 text-red-600" />}
+                          {isSelected && !isFeedbackVisible && (
+                            <CheckCircle2 className="w-3.5 h-3.5 text-blue-600" />
+                          )}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               </motion.div>
@@ -521,7 +565,7 @@ export default function App() {
             {/* Navigation as Text Links */}
             <div className="mt-4 flex justify-between items-center px-2">
               <button 
-                onClick={() => setCurrentIndex(prev => Math.max(0, prev - 1))}
+                onClick={prevQuestion}
                 disabled={currentIndex === 0}
                 className="flex items-center gap-1 font-bold text-slate-500 disabled:opacity-30 disabled:cursor-not-allowed hover:text-slate-900 transition-colors text-sm hover:underline"
               >
@@ -533,11 +577,11 @@ export default function App() {
                   onClick={() => setScreen('results')}
                   className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-2 rounded-lg shadow-md transition-all flex items-center gap-2 active:scale-95 text-sm"
                 >
-                  Finish Exam <CheckCircle2 className="w-4 h-4" />
+                  Finish {mode === 'training' ? 'Review' : 'Exam'} <CheckCircle2 className="w-4 h-4" />
                 </button>
               ) : (
                 <button 
-                  onClick={() => setCurrentIndex(prev => Math.min(examQuestions.length - 1, prev + 1))}
+                  onClick={nextQuestion}
                   className="flex items-center gap-1 font-bold text-blue-600 hover:text-blue-800 transition-colors text-sm hover:underline"
                 >
                   Next Question <ChevronRight className="w-4 h-4" />
