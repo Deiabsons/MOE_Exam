@@ -240,19 +240,30 @@ export default function App() {
               </button>
             </div>
  
-            <div className="flex flex-col sm:flex-row justify-center gap-3">
+            <div className="flex flex-col justify-center gap-3">
               <button 
-                onClick={startExam}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-xl text-lg shadow-md transition-all flex items-center justify-center gap-2 active:scale-95"
+                onClick={() => startTraining(QUESTIONS)}
+                className="bg-slate-900 hover:bg-slate-800 text-white font-bold py-4 px-8 rounded-xl text-lg shadow-xl transition-all flex items-center justify-center gap-3 active:scale-95"
               >
-                Start Full Exam <Play className="w-5 h-5 fill-white" />
+                <Grid3X3 className="w-6 h-6 text-white" />
+                Full Review ({QUESTIONS.length} Questions)
+                <Play className="w-5 h-5 fill-white" />
               </button>
-              <button 
-                onClick={() => setScreen('training')}
-                className="bg-white border-2 border-slate-200 hover:bg-slate-50 text-slate-700 font-bold py-3 px-8 rounded-xl text-lg transition-all active:scale-95 flex items-center justify-center gap-2"
-              >
-                Training by Section <BookOpen className="w-5 h-5" />
-              </button>
+              
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button 
+                  onClick={startExam}
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-xl text-lg shadow-md transition-all flex items-center justify-center gap-2 active:scale-95"
+                >
+                  Exam Sample (50 Questions) <Play className="w-5 h-5 fill-white" />
+                </button>
+                <button 
+                  onClick={() => setScreen('training')}
+                  className="flex-1 bg-white border-2 border-slate-200 hover:bg-slate-50 text-slate-700 font-bold py-3 px-8 rounded-xl text-lg transition-all active:scale-95 flex items-center justify-center gap-2"
+                >
+                  Training by Section <BookOpen className="w-5 h-5" />
+                </button>
+              </div>
             </div>
             <p className="mt-8 text-slate-400 text-sm italic">
               Based on EASA Maintenance and Engineering MOE Guidance
@@ -326,22 +337,6 @@ export default function App() {
                 );
               })}
               
-              <button
-                onClick={() => startTraining(QUESTIONS)}
-                className="mt-4 bg-slate-900 p-5 rounded-xl text-white hover:bg-slate-800 shadow-xl transition-all flex justify-between items-center active:scale-95"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center">
-                    <Grid3X3 className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-lg">Practice All Questions</h3>
-                    <p className="text-xs text-slate-400 font-medium">Complete set of {QUESTIONS.length} questions</p>
-                  </div>
-                </div>
-                <Play className="w-6 h-6 fill-white" />
-              </button>
-
               {/* Custom Search Filter */}
               <div className="mt-6 p-6 bg-blue-50 rounded-2xl border border-blue-100">
                 <h3 className="font-bold text-blue-900 mb-2 text-sm uppercase tracking-wider">Custom Section Search</h3>
