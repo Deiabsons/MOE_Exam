@@ -554,10 +554,18 @@ export default function App() {
                 className="flex-grow flex flex-col justify-center items-center"
               >
                 <div className="bg-white w-full rounded-2xl shadow-lg border border-slate-200 p-4 md:p-6">
-                  <div className="mb-3">
-                    <span className="inline-block bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-full mb-2">
-                      Q{currentIndex + 1} (Ref: #{currentQuestion.id})
-                    </span>
+                  <div className="mb-4">
+                    <div className="flex justify-between items-start mb-2 gap-3">
+                      <span className="inline-block bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                        Q{currentIndex + 1} (Ref: #{currentQuestion.id})
+                      </span>
+                      {mode === 'training' && (
+                        <div className="flex items-center gap-2 bg-emerald-600 text-white px-3 py-1.5 rounded-lg shadow-sm">
+                          <span className="text-[10px] font-bold uppercase tracking-wider opacity-80">MOE issue 27 R0 | P.</span>
+                          <span className="text-sm md:text-base font-black leading-none">{currentQuestion.page}</span>
+                        </div>
+                      )}
+                    </div>
                     <h3 className="text-sm md:text-base font-semibold leading-tight text-slate-800">
                       {currentQuestion.text}
                     </h3>
