@@ -38,7 +38,7 @@ export default function App() {
   const [mode, setMode] = useState<'exam' | 'training'>('exam');
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [trainingSearch, setTrainingSearch] = useState('');
-  const [shuffleOptions, setShuffleOptions] = useState(true);
+  const [shuffleOptions, setShuffleOptions] = useState(false);
   const [isFeedbackVisible, setIsFeedbackVisible] = useState(false);
 
   const [examQuestions, setExamQuestions] = useState<Question[]>([]);
