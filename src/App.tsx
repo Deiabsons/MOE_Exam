@@ -568,7 +568,10 @@ export default function App() {
                         <div className="flex items-center gap-3 bg-emerald-600 text-white px-3 py-2 rounded shadow-sm border border-emerald-500">
                           <span className="text-sm md:text-base font-bold whitespace-nowrap">MOE issue 27 R0</span>
                           <div className="w-px h-5 bg-white/30" />
-                          <span className="text-sm md:text-base font-black leading-none">{currentQuestion.page}</span>
+                          <div className="flex items-baseline gap-1">
+                            <span className="text-[10px] font-bold uppercase opacity-80">Page</span>
+                            <span className="text-sm md:text-base font-black leading-none">{currentQuestion.page}</span>
+                          </div>
                         </div>
                       )}
                     </div>
