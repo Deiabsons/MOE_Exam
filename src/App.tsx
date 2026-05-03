@@ -717,12 +717,22 @@ export default function App() {
               <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
                 <AlertCircle className="text-blue-500" /> Answer Review
               </h2>
+              {score === examQuestions.length && (
+                <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-8 text-center">
+                  <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto mb-3" />
+                  <p className="text-emerald-900 font-bold text-lg">Perfect Score!</p>
+                  <p className="text-emerald-700 text-sm">You answered all questions correctly. There are no mistakes to review.</p>
+                </div>
+              )}
               {examQuestions.map((q, idx) => {
                 const userAns = answers[q.id];
                 const isCorrect = userAns === q.correctAnswer;
+                
+                if (isCorrect) return null;
+                
                 return (
                   <div key={q.id} className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm overflow-hidden border-l-8 border-l-transparent"
-                    style={{ borderLeftColor: userAns ? (isCorrect ? '#10b981' : '#f59e0b') : '#cbd5e1' }}
+                    style={{ borderLeftColor: userAns ? '#f59e0b' : '#cbd5e1' }}
                   >
                     <div className="flex justify-between items-start gap-4 mb-4">
                       <div className="flex-grow">
